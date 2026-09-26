@@ -15,6 +15,19 @@ class Solver:
     def findMising(self, has):
         return [missing for missing in list(range(1, 10)) if not missing in has]
 
+    def findHiddenSingles(self, cells):
+        moves = []
+        for digit in range(1, 10):
+            possibleCells = [
+                cell for cell in cells
+                if self.notation[cell] != [None]
+                and digit in self.notation[cell]
+            ]
+
+            if len(possibleCells) == 1:
+                moves.append((possibleCells[0], digit))
+        return moves
+
     def getPossibleValues(self, cell):
         results = []
         rowValues = [self.game.getValue(v) for v in self.game.getRow(cell)]
@@ -36,12 +49,18 @@ class Solver:
         moves += [
             (cell, v[0]) 
             for cell, v in self.notation.items() 
-            if len(v) == 1 and 
-            not self.game.isCellLocked(cell) and
-            not v[0] in [self.game.getValue(x) for x in self.game.getRow(cell)] and
-            not v[0] in [self.game.getValue(x) for x in self.game.getColumn(cell)] and
-            not v[0] in [self.game.getValue(x) for x in self.game.getQuadrant(cell)]            
-        ]
+            if self.notation[cell] != [None] and len(v) == 1          
+        ] # check for a cell which only has 1 possibility
+
+        for y in range(9):
+            moves += self.findHiddenSingles(self.game.getRow((0, y)))
+        
+        for x in range(9):
+            moves += self.findHiddenSingles(self.game.getColumn((x, 0)))
+
+        for anchor in self.game.quadrantAnchors:
+            moves += self.findHiddenSingles(self.game.getQuadrant(anchor))
+
         for m in moves:
             self.game.addDigit(m[0], m[1])
 
