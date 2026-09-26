@@ -6,9 +6,13 @@ print(gs.showState())
 s = solver.Solver(gs)
 
 startTime = time.time()
-print(gs.filledCells())
+
+lastFilledCellCount = gs.filledCells()
+
 while not gs.solved:
-    print(s.iterate())
+    cfc = s.iterate()
+    if cfc == lastFilledCellCount: break
+    else: lastFilledCellCount = cfc
 elapsedTime = time.time() - startTime
 print(gs.showState())
 if gs.sanityCheck() == True:
