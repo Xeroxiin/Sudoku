@@ -1,16 +1,14 @@
 quadrantAnchors = [
     (2, 2), (5, 2), (8, 2),
     (2, 5), (5, 5), (8, 5),
-    (8, 2), (8, 5), (8, 8)     
+    (2, 8), (5, 8), (8, 8)
 ]
-
 
 class Solver:
     def __init__(self, game):
         self.game = game
         self.known = game.grid
         self.notation = {}
-        
         
         for y in range(9):
             for x in range(9):
@@ -32,53 +30,29 @@ class Solver:
         return specials
     
     def iterate(self):
-        movesToMake = []
-
-        for coord, cell in self.notation.items():
-            if cell == []:
-
-                rCContent = self.game.getRow(coord[1])
-                cCContent = self.game.getColumn(coord[0])
-                qCContent = self.game.getQuadrant(coord[0], coord[1])
-
-                rValue = [self.game.getValue(v) for v in rCContent]
-                cValue = [self.game.getValue(v) for v in cCContent]
-                qValue = [self.game.getValue(v) for v in qCContent]
-
-                possible = self.findMising(qValue) # missing quadrant values
-                for x in possible:
-                    if x in rValue:
-                        possible.remove(x)
-                    elif x in cValue:
-                        possible.remove(x)
-
-                self.notation[coord] = possible
-                #print(f'[{self.game.grid[coord].value}] ({coord[1]}, {coord[0]}) - {possible}')
-
-        '''for coord, cell in self.notation.items():
-            cellsQuad = [x for x in self.game.getQuadrant(coord[0], coord[1]) if not -1 in self.notation[x]]
-
-            cellsRow = [x for x in self.game.getRow(coord[1]) if not -1 in self.notation[x]]
-
-            cellsColumn = [x for x in self.game.getColumn(coord[0]) if not -1 in self.notation[x]]
-
-            cellsCombi = cellsQuad + cellsRow + cellsColumn
-            outliersCombi = self.findOutliers(cellsCombi)
-            if len(outliersCombi) == 1:
-                movesToMake.append(coord, outliersCombi[0])
-            print(f'combi: {outliersCombi}')'''
-
         for anchor in quadrantAnchors:
             quadMissing = list(range(1,10))
+            possibleMoves = {1: [], 2: [], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[]}
             emptyCells = []
-            for cell in self.game.getQuadrant(anchor[0], anchor[1]):
-                if self.game.getValue(cell) != None:
-                    # has a value assigned
+
+            for cell in self.game.getQuadrant(anchor):
+                if self.game.isCellLocked(cell):
                     quadMissing.remove(self.game.getValue(cell))
                 else:
                     emptyCells.append(cell)
+
+
             for digit in quadMissing:
                 for cell in emptyCells:
-                    pass 
+                    rowCheck = digit in [self.game.getValue(ce) for ce in self.game.getRow(cell)] # false is a pass - digit is not in the list
+                    columnCheck = digit in [self.game.getValue(ce) for ce in self.game.getColumn(cell)]
+                    if rowCheck == False and columnCheck == False:
+                        possibleMoves[digit].append(cell)
+
+
+                if len(possibleMoves[digit]) == 1:
+                    self.game.addDigit(possibleMoves[digit][0], digit)
+                    #print(f'Cell ({possibleMoves[digit][0][0]},{possibleMoves[digit][0][1]}) = {digit}')
+                    #print(f'{digit}: {[possibleMoves[digit][0]]}')
+        print(self.game.showState())
         
-        print(movesToMake)
