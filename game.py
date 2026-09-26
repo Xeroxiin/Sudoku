@@ -31,7 +31,7 @@ class Sudoku:
 
     def loadGame(self):
         loadableGames = json.loads(open('gameLoadData.json').read())
-        g = loadableGames[2] #random.choice(loadableGames)
+        g = random.choice(loadableGames) # loadableGames[3] 
         for i in g:
             self.grid[(i[0], i[1])].value = i[2]
             self.grid[(i[0], i[1])].locked = True
