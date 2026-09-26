@@ -81,5 +81,6 @@ class Solver:
             
 
         self.game.solved = not None in [self.game.getValue(v) for v in self.game.grid]
+        return self.game.filledCells()
         #print(self.game.showState())
         

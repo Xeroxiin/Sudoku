@@ -31,7 +31,7 @@ class Sudoku:
 
     def loadGame(self):
         loadableGames = json.loads(open('gameLoadData.json').read())
-        g = random.choice(loadableGames)
+        g = loadableGames[0] #random.choice(loadableGames)
         for i in g:
             self.grid[(i[0], i[1])].value = i[2]
             self.grid[(i[0], i[1])].locked = True
@@ -74,6 +74,9 @@ class Sudoku:
             if len(set([self.getValue(x) for x in quad])) != 9:
                 return False
         return True
+
+    def filledCells(self):
+        return len([self.grid[(x, y)] for x in range(9) for y in range(9) if not self.getValue((x, y)) == None]) 
 
     def showState(self):
         s = f'{"=" * 41}\n'
