@@ -16,8 +16,8 @@ while not gs.solved:
 elapsedTime = time.time() - startTime
 print(gs.showState())
 if gs.sanityCheck() == True:
-    print(f'Sudoku solved in {elapsedTime}s and passed sanity check.')
+    print(f'Sudoku solved in {elapsedTime}s and passed final check.')
 else:
-    print(f'Sudoku completed in {elapsedTime}s but failed sanity check.')
+    print(f'Sudoku completed in {elapsedTime}s but failed final check.')
 
 

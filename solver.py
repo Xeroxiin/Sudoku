@@ -3,84 +3,47 @@ class Solver:
         self.game = game
         self.known = game.grid
         self.notation = {}
-        
+
+    def setupNotation(self):
         for y in range(9):
             for x in range(9):
                 if self.known[(x, y)].locked == True:
-                    self.notation[(x, y)] = [-1]
+                    self.notation[(x, y)] = [None]
                 else:
                     self.notation[(x, y)] = []
 
     def findMising(self, has):
         return [missing for missing in list(range(1, 10)) if not missing in has]
 
-    def findOutliers(self, sets):
-        specials = {}
-        for c1 in sets:
-            specials[c1] = self.notation[c1]
-            for c2 in sets:
-                if c1 != c2 and self.game.getValue(c2) in self.notation[c1]:
-                    specials[c1].remove(self.game.getValue(c2))
-        return specials
+    def getPossibleValues(self, cell):
+        results = []
+        rowValues = [self.game.getValue(v) for v in self.game.getRow(cell)]
+        columnValues = [self.game.getValue(v) for v in self.game.getColumn(cell)]
+        quadrantValues = [self.game.getValue(v) for v in self.game.getQuadrant(cell)]
+        for digit in range(1,10):
+            if digit not in rowValues and digit not in columnValues and digit not in quadrantValues:
+                results.append(digit)
+        return results
     
     def iterate(self):
+        self.setupNotation()
+        moves = []
+        for x in range(9):
+            for y in range(9):
+                if self.notation[(x, y)] != [None]:
+                    self.notation[(x, y)] = self.getPossibleValues((x, y))
 
-        for anchor in self.game.quadrantAnchors:
-            quadMissing = list(range(1, 10))
-            possibleMoves = {1: [], 2: [], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[]}
-            emptyCells = []
-            for cell in self.game.getQuadrant(anchor):
-                if self.game.isCellLocked(cell):
-                    quadMissing.remove(self.game.getValue(cell))
-                else:
-                    emptyCells.append(cell)
-            for digit in quadMissing:
-                for cell in emptyCells:
-                    rowCheck = digit in [self.game.getValue(ce) for ce in self.game.getRow(cell)] # false is a pass - digit is not in the list
-                    columnCheck = digit in [self.game.getValue(ce) for ce in self.game.getColumn(cell)]
-                    if rowCheck == False and columnCheck == False:
-                        possibleMoves[digit].append(cell)
-                if len(possibleMoves[digit]) == 1:
-                    self.game.addDigit(possibleMoves[digit][0], digit)
-        
-        for row in range(9):
-            rowMissing = list(range(1, 10))
-            possibleMoves = {1: [], 2: [], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[]}
-            emptyCells = []
-            for cell in self.game.getRow((row, 0)):
-                if self.game.isCellLocked(cell):
-                    rowMissing.remove(self.game.getValue(cell))
-                else:
-                    emptyCells.append(cell)
-            for digit in rowMissing:
-                for cell in emptyCells:
-                    quadCheck = digit in [self.game.getValue(ce) for ce in self.game.getQuadrant(cell)] # false is a pass - digit is not in the list
-                    columnCheck = digit in [self.game.getValue(ce) for ce in self.game.getColumn(cell)]
-                    if quadCheck == False and columnCheck == False:
-                        possibleMoves[digit].append(cell)
-                if len(possibleMoves[digit]) == 1:
-                    self.game.addDigit(possibleMoves[digit][0], digit)
-
-        for column in range(9):
-            columnMissing = list(range(1, 10))
-            possibleMoves = {1: [], 2: [], 3:[], 4:[], 5:[], 6:[], 7:[], 8:[], 9:[]}
-            emptyCells = []
-            for cell in self.game.getColumn((column, 0)):
-                if self.game.isCellLocked(cell):
-                    columnMissing.remove(self.game.getValue(cell))
-                else:
-                    emptyCells.append(cell)
-            for digit in columnMissing:
-                for cell in emptyCells:
-                    quadCheck = digit in [self.game.getValue(ce) for ce in self.game.getQuadrant(cell)] # false is a pass - digit is not in the list
-                    rowCheck = digit in [self.game.getValue(ce) for ce in self.game.getRow(cell)]
-                    if quadCheck == False and rowCheck == False:
-                        possibleMoves[digit].append(cell)
-                if len(possibleMoves[digit]) == 1:
-                    self.game.addDigit(possibleMoves[digit][0], digit)
-            
+        moves += [
+            (cell, v[0]) 
+            for cell, v in self.notation.items() 
+            if len(v) == 1 and 
+            not self.game.isCellLocked(cell) and
+            not v[0] in [self.game.getValue(x) for x in self.game.getRow(cell)] and
+            not v[0] in [self.game.getValue(x) for x in self.game.getColumn(cell)] and
+            not v[0] in [self.game.getValue(x) for x in self.game.getQuadrant(cell)]            
+        ]
+        for m in moves:
+            self.game.addDigit(m[0], m[1])
 
         self.game.solved = not None in [self.game.getValue(v) for v in self.game.grid]
         return self.game.filledCells()
-        #print(self.game.showState())
-        
