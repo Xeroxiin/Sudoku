@@ -10,13 +10,20 @@ class Cell:
 class Sudoku:
     def __init__(self):
         self.grid = {}
+        self.solved = False
+
+        self.quadrantAnchors = [
+            (2, 2), (5, 2), (8, 2),
+            (2, 5), (5, 5), (8, 5),
+            (2, 8), (5, 8), (8, 8)
+        ]
+
         self.initial()
 
     def initial(self):
         for x in range(9):
             for y in range(9):
                 self.grid[(x, y)] = Cell()
-
         self.loadGame()
 
     def isCellLocked(self, cell):
@@ -48,17 +55,39 @@ class Sudoku:
     def addDigit(self, coordinate, value):
         self.grid[coordinate].locked = True
         self.grid[coordinate].value = value
-        print(f'Cell ({coordinate[0]}, {coordinate[1]}) became {value}')
+        #print(f'Cell ({coordinate[0]}, {coordinate[1]}) became {value}')
 
-    def showState(self, highlight=None):
-        s = f'{"-" * 38}\n'
+    def sanityCheck(self):
+        #check rows / y
+        for row in [self.getRow((0, row)) for row in range(9)]:
+            if len(set([self.getValue(x) for x in row])) != 9:
+                # failed
+                return False
+            
+        #check columns / x
+        for column in [self.getColumn((column, 0)) for column in range(9)]:
+            if len(set([self.getValue(x) for x in column])) != 9:
+                # failed
+                return False
+        #check quads
+        for quad in [self.getQuadrant(x) for x in self.quadrantAnchors]:
+            if len(set([self.getValue(x) for x in quad])) != 9:
+                return False
+        return True
+
+    def showState(self):
+        s = f'{"=" * 41}\n'
         for y in range(9):          
-            s = f'{s}|'
-            for x in range(9):      
-                if highlight and (x, y) == highlight:
-                    s = f'{s} x |'
+            s = f'{s}||'
+            for x in range(9):    
+                s = f'{s} {self.grid[(x, y)].value or " "}'
+                if (x+1)%3 == 0:
+                    s = f'{s} ||'
                 else:
-                    s = f'{s} {self.grid[(x, y)].value or " "} |'
-            s = f'{s}\n{"-" * 38}\n'
+                    s = f'{s}  '
+            if (y+1)%3 == 0:
+                s = f'{s}\n{"=" * 41}\n'
+            else:
+                s = f'{s}\n{"-" * 41}\n'
         return s
             
