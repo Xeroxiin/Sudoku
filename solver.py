@@ -1,3 +1,5 @@
+from itertools import combinations
+
 class Solver:
     def __init__(self, game):
         self.game = game
@@ -27,6 +29,27 @@ class Solver:
             if len(possibleCells) == 1:
                 moves.append((possibleCells[0], digit))
         return moves
+
+    def getEmptyCells(self, cells):
+        return [cell for cell in cells if self.notation[cell] != [None]]
+
+    def findNakedSets(self, cells):
+        emptyCells = self.getEmptyCells(cells)
+        nE = min(len(emptyCells)+1, 5)
+
+        for n in range(2, nE):
+            for combination in combinations(emptyCells, n):
+                candidates = set()
+
+                for cell in combination:
+                    candidates.update(self.notation[cell])
+                if len(candidates) == n+1:
+                    for cell in cells:
+                        if not cell in combination:
+                            for candidate in candidates:
+                                if candidate in self.notation[cell]:
+                                    self.notation[cell].remove(candidate)
+                
 
     def findNakedPairs(self, cells):
         pairs = []
@@ -68,13 +91,13 @@ class Solver:
                     self.notation[(x, y)] = self.getPossibleValues((x, y))
 
         for y in range(9):
-            self.findNakedPairs(self.game.getRow((0, y)))
+            self.findNakedSets(self.game.getRow((0, y)))
 
         for x in range(9):
-            self.findNakedPairs(self.game.getColumn((x, 0)))
+            self.findNakedSets(self.game.getColumn((x, 0)))
 
         for anchor in self.game.quadrantAnchors:
-            self.findNakedPairs(self.game.getQuadrant(anchor))
+            self.findNakedSets(self.game.getQuadrant(anchor))
 
         moves += [
             (cell, v[0]) 
