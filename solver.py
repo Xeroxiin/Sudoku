@@ -1,10 +1,13 @@
 from itertools import combinations
+import logging
 
 class Solver:
     def __init__(self, game):
         self.game = game
         self.known = game.grid
         self.notation = {}
+        self.log = logging.L()
+        self.count = 0
 
     def setupNotation(self):
         for y in range(9):
@@ -113,6 +116,7 @@ class Solver:
         return results
     
     def iterate(self):
+        self.log.add(f'Iteration: {self.count}')
         self.setupNotation()
 
         for x in range(9):
@@ -134,12 +138,7 @@ class Solver:
 
         for y in range(9):
             self.findHiddenSets(self.game.getRow((0, y)))
-        print("Notation after hidden sets:")
-        for y in range(9):
-            print([
-                self.notation[(x, y)]
-                for x in range(9)
-            ])
+
         for x in range(9):
             self.findHiddenSets(self.game.getColumn((x, 0)))
         
@@ -169,6 +168,8 @@ class Solver:
             moves += self.findHiddenSingles(
                 self.game.getQuadrant(anchor)
             )
+
+        moves = list(dict.fromkeys(moves))
 
         for m in moves:
             self.game.addDigit(m[0], m[1])

@@ -15,6 +15,7 @@ while not gs.solved:
     else: lastFilledCellCount = cfc
 elapsedTime = time.time() - startTime
 print(gs.showState())
+s.log.write()
 if gs.sanityCheck() == True:
     print(f'Sudoku solved in {elapsedTime}s and passed final check.')
 else:
