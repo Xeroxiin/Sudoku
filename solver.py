@@ -52,23 +52,33 @@ class Solver:
 
     def findHiddenSets(self, cells):
         emptyCells = self.getEmptyCells(cells)
-        nE = min(len(emptyCells)+1, 5)
+        nE = min(len(emptyCells) + 1, 5)
 
         for n in range(2, nE):
             for combination in combinations(range(1, 10), n):
                 possibleCells = set()
+                valid = True
 
                 for digit in combination:
+                    digitCells = set()
                     for cell in emptyCells:
-                        if digit in self.notation[cells]:
-                            possibleCells.add(cell)
-                if len(possibleCells) == 1:
+                        if digit in self.notation[cell]:
+                            digitCells.add(cell)
+
+                    if len(digitCells) == 0:
+                        valid = False
+                        break
+                    possibleCells.update(digitCells)
+
+                if valid and len(possibleCells) == n:
+                    print("Hidden set:", combination, possibleCells)
                     for cell in possibleCells:
                         self.notation[cell] = [
                             candidate
                             for candidate in self.notation[cell]
                             if candidate in combination
                         ]
+                    return
                      
     
     def findPointing(self, unit):
@@ -122,6 +132,21 @@ class Solver:
         for anchor in self.game.quadrantAnchors:
             self.findPointing(self.game.getQuadrant(anchor))
 
+        for y in range(9):
+            self.findHiddenSets(self.game.getRow((0, y)))
+        print("Notation after hidden sets:")
+        for y in range(9):
+            print([
+                self.notation[(x, y)]
+                for x in range(9)
+            ])
+        for x in range(9):
+            self.findHiddenSets(self.game.getColumn((x, 0)))
+        
+
+        for anchor in self.game.quadrantAnchors:
+            self.findHiddenSets(self.game.getQuadrant(anchor))
+        
         moves = []
 
         moves += [
