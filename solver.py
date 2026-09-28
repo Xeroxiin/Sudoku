@@ -49,7 +49,28 @@ class Solver:
                             for candidate in candidates:
                                 if candidate in self.notation[cell]:
                                     self.notation[cell].remove(candidate)
-                
+
+    def findHiddenSets(self, cells):
+        emptyCells = self.getEmptyCells(cells)
+        nE = min(len(emptyCells)+1, 5)
+
+        for n in range(2, nE):
+            for combination in combinations(range(1, 10), n):
+                possibleCells = set()
+
+                for digit in combination:
+                    for cell in emptyCells:
+                        if digit in self.notation[cells]:
+                            possibleCells.add(cell)
+                if len(possibleCells) == 1:
+                    for cell in possibleCells:
+                        self.notation[cell] = [
+                            candidate
+                            for candidate in self.notation[cell]
+                            if candidate in combination
+                        ]
+                     
+    
     def findPointing(self, unit):
         for digit in range(1, 10):
             possibleCells = []
