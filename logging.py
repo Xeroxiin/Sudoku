@@ -5,7 +5,7 @@ class L:
         self.content = []
 
     def write(self):
-        fn = time.strftime("%d-%m-%Y-%H:%M:%S.log")
+        fn = time.strftime("logs/%d-%m-%Y %H-%M-%S.log")
         with open(fn, 'w') as f:
             f.writelines(self.content)
 
