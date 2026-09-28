@@ -43,33 +43,32 @@ class Solver:
 
                 for cell in combination:
                     candidates.update(self.notation[cell])
-                if len(candidates) == n+1:
+                if len(candidates) == n:
                     for cell in cells:
                         if not cell in combination:
                             for candidate in candidates:
                                 if candidate in self.notation[cell]:
                                     self.notation[cell].remove(candidate)
                 
+    def findPointing(self, unit):
+        for digit in range(1, 10):
+            possibleCells = []
+            for cell in unit:
+                if digit in self.notation[cell]:
+                    possibleCells.append(cell)
 
-    def findNakedPairs(self, cells):
-        pairs = []
-        for cell in cells:
-            candi = self.notation[cell]
-            if len(candi) == 2 and not candi in pairs:
-                pairs.append(candi)
+            if len(set([cell[0] for cell in possibleCells])) == 1:
+                for otherCell in self.game.getColumn(possibleCells[0]):
+                    if not otherCell in unit:
+                        if digit in self.notation[otherCell]:
+                            self.notation[otherCell].remove(digit)
 
-        for pair in pairs:
-            cellsWithPair = []
-            for cell in cells:
-                if self.notation[cell] == pair:
-                    cellsWithPair.append(cell)
-            if len(cellsWithPair) == 2:
-                for otherCell in cells:
-                    if not otherCell in cellsWithPair:
-                        if pair[0] in self.notation[otherCell]:
-                            self.notation[otherCell].remove(pair[0])
-                        if pair[1] in self.notation[otherCell]:
-                            self.notation[otherCell].remove(pair[1])
+            if len(set([cell[1] for cell in possibleCells])) == 1:
+                for otherCell in self.game.getRow(possibleCells[0]):
+                    if not otherCell in unit:
+                        #not in target row
+                        if digit in self.notation[otherCell]:
+                            self.notation[otherCell].remove(digit)
 
 
     def getPossibleValues(self, cell):
@@ -84,7 +83,7 @@ class Solver:
     
     def iterate(self):
         self.setupNotation()
-        moves = []
+
         for x in range(9):
             for y in range(9):
                 if self.notation[(x, y)] != [None]:
@@ -99,23 +98,37 @@ class Solver:
         for anchor in self.game.quadrantAnchors:
             self.findNakedSets(self.game.getQuadrant(anchor))
 
+        for anchor in self.game.quadrantAnchors:
+            self.findPointing(self.game.getQuadrant(anchor))
+
+        moves = []
+
         moves += [
-            (cell, v[0]) 
-            for cell, v in self.notation.items() 
-            if self.notation[cell] != [None] and len(v) == 1          
-        ] # check for a cell which only has 1 possibility
+            (cell, v[0])
+            for cell, v in self.notation.items()
+            if self.notation[cell] != [None] and len(v) == 1
+        ]
 
         for y in range(9):
-            moves += self.findHiddenSingles(self.game.getRow((0, y)))
-        
+            moves += self.findHiddenSingles(
+                self.game.getRow((0, y))
+            )
+
         for x in range(9):
-            moves += self.findHiddenSingles(self.game.getColumn((x, 0)))
+            moves += self.findHiddenSingles(
+                self.game.getColumn((x, 0))
+            )
 
         for anchor in self.game.quadrantAnchors:
-            moves += self.findHiddenSingles(self.game.getQuadrant(anchor))
+            moves += self.findHiddenSingles(
+                self.game.getQuadrant(anchor)
+            )
 
         for m in moves:
             self.game.addDigit(m[0], m[1])
 
-        self.game.solved = not None in [self.game.getValue(v) for v in self.game.grid]
+        self.game.solved = not None in [
+            self.game.getValue(v) for v in self.game.grid
+        ]
+
         return self.game.filledCells()
